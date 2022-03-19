@@ -1,0 +1,19 @@
+{
+  "name": "datasub-test",
+  "version": "1.0.0",
+  "description": "This project is for DataSub company",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krikun1983/datasub-test.git"
+  },
+  "author": "Stanislav Akhmadeev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/krikun1983/datasub-test/issues"
+  },
+  "homepage": "https://github.com/krikun1983/datasub-test#readme"
+}
