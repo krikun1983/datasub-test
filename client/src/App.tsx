@@ -1,6 +1,6 @@
 import React from 'react';
-import 'antd/dist/antd.css';
 import Form from './components/Form';
+import 'antd/dist/antd.css';
 
 const App: React.FC = () => {
   return (
@@ -8,6 +8,6 @@ const App: React.FC = () => {
       <Form />
     </>
   );
-}
+};
 
 export default App;

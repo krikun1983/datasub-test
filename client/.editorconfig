@@ -1,0 +1,15 @@
+root = true
+
+[*]
+charset = utf-8
+indent_style = space #отступы оформляются пробелами а не знаками табуляции
+indent_size = 2 #размер отступа равен двум пробелам
+end_of_line = CRLF #перевод строки оформляется символом lf
+trim_trailing_whitespace = true #удаление пробелов в конце строк - для js true
+insert_final_newline = true #Перенос строки автоматический
+[*.{js,ts}]
+quote_type = single
+[*.md]
+trim_trailing_whitespace = false
+[*.json]
+insert_final_newline = false # в конце файла должна быть пустая строка
