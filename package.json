@@ -5,7 +5,11 @@
   "main": "index.js",
   "scripts": {
     "client": "cd ./client && npm run start",
-    "server": "cd ./server && npm run start:dev"
+    "server": "cd ./server && npm run start:dev",
+    "install_client": "cd ./client && npm i",
+    "install_server": "cd ./server && npm i",
+    "prod": "cd ./client && npm run build && cd .. && npm run server",
+    "install_prod": "cd ./client && npm i && npm run build && cd ../server && npm i && npm run start:prod"
   },
   "repository": {
     "type": "git",
