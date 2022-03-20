@@ -1,3 +1,4 @@
+import React, {ChangeEvent, useEffect, useState} from 'react';
 import {
   Row,
   Col,
@@ -8,50 +9,51 @@ import {
   Form,
   Input,
   InputNumber,
-  FormInstance,
 } from 'antd';
 import moment from 'moment';
-import React, {useEffect, useRef, useState} from 'react';
 import './Form.scss';
 
 type DataType = {
-  CardNumber: string;
-  ExpDate: string;
-  Cvv: string;
-  Amount: number;
+  cardNumber: string;
+  expDate: string;
+  cvv: string;
+  amount: number;
 };
 type ErrorType = {
   CardNumber: boolean;
-  ExpDate: boolean;
+  Cvv: boolean;
 };
 
 const MyForm: React.FC = () => {
   const {Title} = Typography;
-  const [expData, setExpData] = useState<string>('03/2022');
+  const [cardValue, setCardValue] = useState<DataType>({
+    cardNumber: '',
+    expDate: '03/2022',
+    cvv: '',
+    amount: 1,
+  });
   const [errorFieldsForm, setErrorFieldsForm] = useState<ErrorType>({
     CardNumber: true,
-    ExpDate: true,
+    Cvv: true,
   });
   const [btnForm, setBtnForm] = useState(true);
   const monthFormat = 'MM/YYYY';
-  const [form] = Form.useForm();
-  const cardNumberFull = 16;
+  const cardNumberFull = 19;
   const cvvFull = 3;
-  const ref = useRef() as React.MutableRefObject<FormInstance>;
 
   useEffect(() => {
-    if (!errorFieldsForm.CardNumber && !errorFieldsForm.ExpDate) {
+    if (!errorFieldsForm.CardNumber && !errorFieldsForm.Cvv) {
       setBtnForm(false);
     } else {
       setBtnForm(true);
     }
-  }, [errorFieldsForm.CardNumber, errorFieldsForm.ExpDate]);
+  }, [errorFieldsForm.CardNumber, errorFieldsForm.Cvv]);
 
   const matrixFieldCardNumber = (value: string) => {
     if (!value) return;
     const matrix = '____-____-____-____';
     let i = 0;
-    const val = value.replace(/\D/g, '');
+    const val = value.replace(/\D+/g, '');
 
     return matrix.replace(/./g, function (sym) {
       return /[_\d]/.test(sym) && i < val.length
@@ -63,21 +65,74 @@ const MyForm: React.FC = () => {
   };
 
   const handleExpDate = (value: moment.Moment | null, dateString: string) => {
-    setExpData(dateString);
+    setCardValue({...cardValue, expDate: dateString});
   };
 
-  const handleSubmit = (e: DataType) => {
-    console.log(
-      JSON.stringify({
-        CardNumber: e.CardNumber.replace(/-/g, ''),
-        ExpDate: expData,
-        Cvv: e.Cvv,
-        Amount: e.Amount,
+  const handleCardNumber = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value.length > cardNumberFull) return;
+
+    if (value.length === cardNumberFull) {
+      setErrorFieldsForm({
+        ...errorFieldsForm,
+        CardNumber: false,
+      });
+    } else {
+      setErrorFieldsForm({
+        ...errorFieldsForm,
+        CardNumber: true,
+      });
+    }
+    const result = matrixFieldCardNumber(e.target.value);
+    setCardValue({...cardValue, cardNumber: result as string});
+  };
+
+  const handleCvv = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D+/g, '');
+    if (value.length > cvvFull) return;
+    if (value.length === cvvFull) {
+      setErrorFieldsForm({
+        ...errorFieldsForm,
+        Cvv: false,
+      });
+    } else {
+      setErrorFieldsForm({
+        ...errorFieldsForm,
+        Cvv: true,
+      });
+    }
+    setCardValue({...cardValue, cvv: value});
+  };
+
+  const handleAmount = (value: number) => {
+    setCardValue({...cardValue, amount: value});
+  };
+
+  const handleSubmit = async () => {
+    await fetch(`${'http://localhost:5000/api/payment/send'}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8',
+      },
+      body: JSON.stringify({
+        CardNumber: cardValue.cardNumber.replace(/-/g, ''),
+        ExpDate: cardValue.expDate,
+        Cvv: cardValue.cvv,
+        Amount: cardValue.amount,
       }),
-    );
-    ref.current.setFieldsValue({
-      CardNumber: '',
-      Cvv: '',
+    })
+      .then(response => response.json())
+      .then(json => console.log(json))
+      .catch(error => console.log(error.message));
+    setCardValue({
+      ...cardValue,
+      cardNumber: '',
+      cvv: '',
+      amount: 1,
+    });
+    setErrorFieldsForm({
+      CardNumber: true,
+      Cvv: true,
     });
   };
 
@@ -89,60 +144,19 @@ const MyForm: React.FC = () => {
         </Title>
         <Divider />
         <div className="form-wrapper">
-          <Form
-            ref={ref}
-            className="form"
-            onFinish={handleSubmit}
-            name="payment"
-            form={form}
-          >
+          <Form className="form" name="payment">
             <Form.Item
-              name="CardNumber"
               label="Card Number"
               hasFeedback
-              rules={[
-                {
-                  required: true,
-                  message: 'Digit must be 16',
-                },
-                ({getFieldValue}) => ({
-                  validator(_, value) {
-                    if (typeof value === 'undefined') {
-                      return Promise.reject();
-                    }
-                    if (value) {
-                      ref.current.setFieldsValue({
-                        CardNumber: value
-                          .replace(/\D/g, '')
-                          .slice(0, cardNumberFull),
-                      });
-                      setErrorFieldsForm({
-                        ...errorFieldsForm,
-                        CardNumber: true,
-                      });
-
-                      if (
-                        getFieldValue('CardNumber').length === cardNumberFull
-                      ) {
-                        ref.current.setFieldsValue({
-                          CardNumber: matrixFieldCardNumber(value),
-                        });
-                        return Promise.resolve().then(() =>
-                          setErrorFieldsForm({
-                            ...errorFieldsForm,
-                            CardNumber: false,
-                          }),
-                        );
-                      }
-                    }
-                    return Promise.reject(
-                      `${cardNumberFull - value.length} character left`,
-                    );
-                  },
-                }),
-              ]}
+              validateStatus={errorFieldsForm.CardNumber ? 'error' : 'success'}
+              help={errorFieldsForm.CardNumber ? 'Digit must be 16...' : ''}
             >
-              <Input placeholder="Enter credit card number..." />
+              <Input
+                name="CardNumber"
+                placeholder="Enter credit card number..."
+                value={cardValue.cardNumber}
+                onChange={handleCardNumber}
+              />
             </Form.Item>
             <Row justify="space-between">
               <Col span={14}>
@@ -157,57 +171,36 @@ const MyForm: React.FC = () => {
               </Col>
               <Col span={10}>
                 <Form.Item
-                  name="Cvv"
                   label="Cvv"
                   hasFeedback
-                  rules={[
-                    {
-                      required: true,
-                      message: 'Enter credit card cvv...',
-                    },
-                    ({getFieldValue}) => ({
-                      validator(_, value) {
-                        if (typeof value === 'undefined') {
-                          return Promise.reject();
-                        }
-                        if (getFieldValue('Cvv')) {
-                          setErrorFieldsForm({
-                            ...errorFieldsForm,
-                            ExpDate: true,
-                          });
-
-                          if (value.length > cvvFull) {
-                            ref.current.setFieldsValue({
-                              Cvv: value.slice(0, 3),
-                            });
-                          }
-                          if (value.length > 2) {
-                            return Promise.resolve().then(() =>
-                              setErrorFieldsForm({
-                                ...errorFieldsForm,
-                                ExpDate: false,
-                              }),
-                            );
-                          }
-                        }
-                        return Promise.reject(
-                          `${cvvFull - value.length} character left`,
-                        );
-                      },
-                    }),
-                  ]}
+                  validateStatus={errorFieldsForm.Cvv ? 'error' : 'success'}
+                  help={errorFieldsForm.Cvv ? 'Digit must be 3...' : ''}
                 >
                   <Input.Password
                     placeholder="Enter credit card cvv..."
                     autoComplete="true"
+                    name="Cvv"
+                    value={cardValue.cvv}
+                    onChange={handleCvv}
                   />
                 </Form.Item>
               </Col>
             </Row>
             <Form.Item label="Amount" name="Amount" initialValue={1}>
-              <InputNumber min={1} max={100} />
+              <InputNumber
+                min={1}
+                max={100}
+                value={cardValue.amount}
+                onChange={handleAmount}
+              />
             </Form.Item>
-            <Button block type="default" htmlType="submit" disabled={btnForm}>
+            <Button
+              block
+              type="default"
+              htmlType="submit"
+              onClick={handleSubmit}
+              disabled={btnForm}
+            >
               Оплатить
             </Button>
           </Form>
