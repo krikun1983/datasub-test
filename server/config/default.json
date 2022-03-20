@@ -1,0 +1,6 @@
+{
+  "port": 5000,
+  "DB_URL": "mongodb+srv://admin:admin@cluster0.zkmt6.mongodb.net/data-sub?retryWrites=true&w=majority",
+  "baseUrl": "http://localhost:5000",
+  "clientUrl": "http://localhost:3000"
+}

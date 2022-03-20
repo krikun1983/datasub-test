@@ -4,7 +4,8 @@
   "description": "This project is for DataSub company",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "client": "cd ./client && npm run start",
+    "server": "cd ./server && npm run start:dev"
   },
   "repository": {
     "type": "git",
