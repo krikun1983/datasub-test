@@ -109,6 +109,14 @@ const MyForm: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    console.log(
+      JSON.stringify({
+        CardNumber: cardValue.cardNumber.replace(/-/g, ''),
+        ExpDate: cardValue.expDate,
+        Cvv: cardValue.cvv,
+        Amount: cardValue.amount,
+      }),
+    );
     await fetch(`${'http://localhost:5000/api/payment/send'}`, {
       method: 'POST',
       headers: {
